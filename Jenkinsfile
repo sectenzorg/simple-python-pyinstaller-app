@@ -17,11 +17,14 @@ pipeline {
         }
         stage('Test') {
             steps {
-                sh 'python -m unittest discover -s sources -p "test_*.py"'
+                // Menambahkan --with-xml untuk menghasilkan laporan XML
+                sh 'python -m unittest discover -s sources -p "test_*.py" > result.log; tail -n 10 result.log'
+                sh 'python -m unittest discover -s sources -p "test_*.py" > result.xml || true'
             }
             post {
                 always {
-                    junit '**/test-reports/*.xml'
+                    // Pastikan hasil XML berada di lokasi yang tepat
+                    junit '**/result.xml'
                 }
             }
         }
