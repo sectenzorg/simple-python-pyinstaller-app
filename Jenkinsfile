@@ -16,26 +16,16 @@ pipeline {
             }
         }
         stage('Test') {
-            agent {
-                docker {
-                    image 'qnib/pytest'
-                }
-            }
             steps {
-                sh 'py.test --verbose --junit-xml test-reports/results.xml sources/test_calc.py'
+                sh 'python -m unittest discover -s sources -p "test_*.py"'
             }
             post {
                 always {
-                    junit 'test-reports/results.xml'
+                    junit '**/test-reports/*.xml'
                 }
             }
         }
         stage('Deliver') {
-            agent {
-                docker {
-                    image 'cdrx/pyinstaller-linux:python2'
-                }
-            }
             steps {
                 sh 'pyinstaller --onefile sources/add2vals.py'
             }
