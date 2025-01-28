@@ -23,12 +23,8 @@ pipeline {
         }
         stage('Deliver') {
             steps {
+                // Menjalankan pyinstaller langsung tanpa tambahan post-processing
                 sh 'pyinstaller --onefile sources/add2vals.py'
-            }
-            post {
-                success {
-                    archiveArtifacts 'dist/add2vals'
-                }
             }
         }
     }
