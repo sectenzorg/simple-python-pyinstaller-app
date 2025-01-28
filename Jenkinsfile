@@ -1,30 +1,32 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:2-alpine'
-        }
-    }
+    agent none
     stages {
-        stage('Git Clone') { 
-            steps {
-                git branch: 'master', url: 'https://github.com/sectenzorg/simple-python-pyinstaller-app'
-            }
-        }
         stage('Build') {
+            agent { docker { image 'python:2-alpine' } }
             steps {
                 sh 'python -m py_compile sources/add2vals.py sources/calc.py'
             }
         }
         stage('Test') {
+            agent { docker { image 'qnib/pytest' } }
             steps {
-                // Langsung jalankan unittest dan hasilkan laporan XML
-                sh 'python -m unittest discover -s sources -p "test_*.py" > result.xml || true'
+                sh 'pytest --verbose --junit-xml test-reports/results.xml sources/test_calc.py'
+            }
+            post {
+                always {
+                    junit '**/test-reports/results.xml'
+                }
             }
         }
         stage('Deliver') {
+            agent { docker { image 'cdrx/pyinstaller-linux:python2' } }
             steps {
-                // Menjalankan pyinstaller langsung tanpa tambahan post-processing
                 sh 'pyinstaller --onefile sources/add2vals.py'
+            }
+            post {
+                success {
+                    archiveArtifacts '**/dist/add2vals'
+                }
             }
         }
     }
